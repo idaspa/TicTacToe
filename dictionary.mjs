@@ -12,12 +12,14 @@ const dictionary = {
         spillerMerke2: ` O `,
         quit: `q`,
         restartGame: `r`,
-        help: " press q for å avslutte, press r for å restarte",
+        help: `h`,
+        helpInfo: " press q for å avslutte, press r for å restarte",
 
 
-        brettNummer: `    1    2    3 `,
+        
 
     },
+    
 };
 
 export default dictionary;

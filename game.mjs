@@ -1,4 +1,5 @@
 //#region
+import visBrett from "./visbrett.mjs";
 import dictionary from "./dictionary.mjs";
 import * as readlinePromises from "node:readline/promises";
 const rl = readlinePromises.createInterface({
@@ -21,6 +22,8 @@ let brett = [
     [0, 0, 0],
 ];
 
+let extraInfo = "";
+
 //#region Logikken for spillet tre på rad. --------------------------------------------------------
 
 const SPILLER1 = 1;
@@ -29,15 +32,17 @@ let spiller = SPILLER1;
 let isGameOver = false;
 let spill1Navn = "Spiller 1";
 let spill2Navn = "Spiller 2";
-
 await restart();
-
 
 while (isGameOver == false) {
 
 
     console.log(ANSI.CLEAR_SCREEN, ANSI.CURSOR_HOME);
     visBrett(brett);
+    if (extraInfo != "") {
+        console.log(extraInfo);
+        extraInfo = "";
+    }
 
     if (spiller == 1) {
         console.log(`${dictionary.no.spiller} ${spill1Navn} ${dictionary.no.tur}`);
@@ -48,29 +53,36 @@ while (isGameOver == false) {
     let rad = -1;
     let kolone = -1;
 
+
     do {
+
         let pos = await rl.question(dictionary.no.valgAvMerke);
 
         if (pos == dictionary.no.quit) {
             process.exit();
         }
 
-
         if (pos == dictionary.no.restartGame) {
             console.log(ANSI.CLEAR_SCREEN, ANSI.CURSOR_HOME);
             await restart()
+            break;
         }
+
         if (pos == dictionary.no.help) {
-            console.log(`${dictionary.no.help}`);
+            help();
+            break;
         }
+
 
         [rad, kolone] = pos.split(" ").map(Number)
         rad = rad - 1;
         kolone = kolone - 1;
-        if (pos.match(/[^\d]/g)) {
-            break;
-        }
+
+
     } while (brett[rad][kolone] != 0);
+
+
+
     if (brett[rad] && brett[rad][kolone] !== false) {
         brett[rad][kolone] = spiller;
 
@@ -90,14 +102,13 @@ while (isGameOver == false) {
 console.log(ANSI.CLEAR_SCREEN, ANSI.CURSOR_HOME);
 visBrett(brett);
 console.log(resultatAvSpill);
-console.log("Game Over");
+console.log(dictionary.no.spillSlutt);
 process.exit();
 
 //#endregion---------------------------------------------------------------------------------------
 
 function harNoenVunnet(brett) {
 
-    //vannrett
     for (let rad = 0; rad < brett.length; rad++) {
         let sum = 0;
         for (let kolone = 0; kolone < brett.length; kolone++) {
@@ -109,7 +120,6 @@ function harNoenVunnet(brett) {
         }
     }
 
-    //loddrett
     for (let kolone = 0; kolone < brett.length; kolone++) {
         let sum = 0;
         for (let rad = 0; rad < brett.length; rad++) {
@@ -125,8 +135,8 @@ function harNoenVunnet(brett) {
     if (Math.abs(sum) == 3) {
         return sum / 3;
     }
-    sum = brett[0][2] + brett [1][2] + brett[2][0];
-    if(Math.abs(sum) == 3) {
+    sum = brett[0][2] + brett[1][1] + brett[2][0];
+    if (Math.abs(sum) == 3) {
         return sum / 3;
     }
 
@@ -148,39 +158,12 @@ function erSpilletUavgjort(brett) {
 
 }
 
-function visBrett(brett) {
-
-    let visningAvBrett = `    1   2   3 ` + `\n`;
-    visningAvBrett += "  ╔═══╦═══╦═══╗ \n";
-
-    for (let i = 0; i < brett.length; i++) {
-        visningAvBrett += (i + 1) + " ║";
-
-        for (let j = 0; j < brett.length; j++) {
-            let verdi = brett[i][j];
-            if (verdi == 0) {
-                visningAvBrett += "   ║"
-            } else if (verdi == SPILLER1) {
-                visningAvBrett += ANSI.COLOR.GREEN + dictionary.no.spillerMerke1 + ANSI.COLOR_RESET + `║`;
-            } else {
-                visningAvBrett += ANSI.COLOR.RED + dictionary.no.spillerMerke2 + ANSI.COLOR_RESET + `║`;
-            }
-        }
-        visningAvBrett += "\n";
-
-        if (i < brett.length - 1) {
-            visningAvBrett += "  ╠═══╬═══╬═══╣\n";
-        } else {
-            visningAvBrett += "  ╚═══╩═══╩═══╝\n";
-        }
-    }
-    console.log(visningAvBrett);
-}
 
 async function restart() {
     isGameOver = false;
     resultatAvSpill = "";
     spiller = SPILLER1;
+
 
     spill1Navn = await rl.question("Enter Navn...: ");
     spill2Navn = await rl.question("Enter Navn...: ");
@@ -191,7 +174,13 @@ async function restart() {
         [0, 0, 0],
         [0, 0, 0],
     ];
+
+    return { spill1Navn, spill2Navn };
     //visBrett(brett);
+}
+
+async function help() {
+    extraInfo = dictionary.no.helpInfo;
 }
 
 function spillerNavn(sp = spiller) {
@@ -211,3 +200,4 @@ function byttAktivSpiller() {
          spiller = spiller1;
      }*/
 }
+
